@@ -47,8 +47,17 @@ def apyori_mba(basket_sets, basket_len, basket_wid):
    transactions = []
    for i in range(0, basket_len):
       transactions.append([str(basket_sets.values[i,j]) for j in range(0, basket_wid)])
-   rules = apriori(transactions, min_support = 0.003, min_confidence = 0.2, min_lift = 3, min_length = 2)
-   print(rules)
+   rules = apriori(transactions, min_support = 0.1, min_lift=2)
+   rules_list = list(rules)
+   print("Number of rules found", len(rules_list))
+   for item in rules:
+      pair = item[0] 
+      items = [x for x in pair]
+      print("Rule: " + items[0] + " -> " + items[1])
+      print("Support: " + str(item[1]))
+      print("Confidence: " + str(item[2][0][2]))
+      print("Lift: " + str(item[2][0][3]))
+      print("=====================================")
 
 
 print("Number of transactions", len(basket_sets))
