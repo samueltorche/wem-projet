@@ -20,10 +20,12 @@ data_movies['title'] = data_movies.apply(lambda row: title_without_year(row), ax
 
 print('this dataset contains: ', len(data_movies), 'movies')
 
-data_ratings = pd.read_csv('ratings.csv', usecols=[0, 1])
+data_ratings = pd.read_csv('ratings.csv', usecols=[0, 1, 2])
 print('this dataset contains: ', len(data_ratings), 'ratings')
+data_ratings = data_ratings[data_ratings.rating > 2]
+print('this dataset contains: ', len(data_ratings), 'positive ratings')
 
-limit_testing = 2000000
+limit_testing = 5000000
 df = data_ratings[:limit_testing].groupby(['userId', 'movieId']).size().reset_index(name='count')
 
 print("Ratings effectively taken:", len(df))
