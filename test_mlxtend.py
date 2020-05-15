@@ -1,5 +1,6 @@
 import pandas as pd
 from mlxtend.frequent_patterns import apriori
+from mlxtend.frequent_patterns import fpgrowth
 from mlxtend.frequent_patterns import association_rules
 from mlxtend.preprocessing import TransactionEncoder
 
@@ -22,12 +23,14 @@ print('this dataset contains: ', len(data_movies), 'movies')
 data_ratings = pd.read_csv('ratings.csv', usecols=[0, 1])
 print('this dataset contains: ', len(data_ratings), 'ratings')
 
-limit_testing = 100000
-df = data_ratings.groupby(['userId', 'movieId']).size().reset_index(name='count')
+limit_testing = 2000000
+df = data_ratings[:limit_testing].groupby(['userId', 'movieId']).size().reset_index(name='count')
 
 print("Ratings effectively taken:", len(df))
 
+print("Creation of basket dataframe...")
 basket = df.groupby(['userId', 'movieId'])['count'].sum().unstack().reset_index().fillna(0).set_index('userId')
+print("Basket dataframe created...")
 
 
 # The encoding function
@@ -38,28 +41,38 @@ def encode_units(x):
         return 1
 
 
-basket_sets = basket.applymap(encode_units)
+print("Encoding basket sets...")
+# basket_sets = basket.applymap(encode_units)
+basket_sets = basket
+print("Basket sets encoded")
 
 
 def mlxtend_mba(basket_sets):
-    transactions = []
-    for i in range(0, len(basket_sets)):
-        t = []
-        for j in range(0, len(basket_sets.columns)):
-            if(basket_sets.values[i,j] == 1):
-                t.append(list(basket_sets)[j])
-        transactions.append(t)
+   '''
+   transactions = []
+   for i in range(0, len(basket_sets)):
+      t = []
+      for j in range(0, len(basket_sets.columns)):
+         if(basket_sets.values[i,j] == 1):
+            t.append(list(basket_sets)[j])
+      transactions.append(t)
 
-    te = TransactionEncoder()
-    oht_ary = te.fit(transactions).transform(transactions, sparse=True)
-    sparse_df = pd.DataFrame.sparse.from_spmatrix(oht_ary, columns=te.columns_)
-    sparse_df.columns = [str(i) for i in sparse_df.columns]
+   te = TransactionEncoder()
+   oht_ary = te.fit(transactions).transform(transactions, sparse=True)
+   sparse_df = pd.DataFrame.sparse.from_spmatrix(oht_ary, columns=te.columns_)
+   sparse_df.columns = [str(i) for i in sparse_df.columns]
 
-    frequent_itemsets = apriori(sparse_df, min_support=0.1, use_colnames=True)
-    rules = association_rules(frequent_itemsets, metric="lift")
-    rules.sort_values('confidence', ascending=False, inplace=True)
-    # rules.head(10)
-    print(rules)
+   frequent_itemsets = apriori(sparse_df, min_support=0.1, use_colnames=True)
+   '''
+   print("Applying fpgrowth/apriori on baskets...")
+   frequent_itemsets = fpgrowth(basket_sets, min_support=0.3, use_colnames=True)
+   # frequent_itemsets = apriori(basket_sets, min_support=0.3, use_colnames=True, low_memory=True)
+   print("Applying association rules...")
+   rules = association_rules(frequent_itemsets, metric="lift")
+   print("Sorting association rules...")
+   rules.sort_values('confidence', ascending=False, inplace=True)
+   # rules.head(10)
+   print(rules)
 
 
 print("Number of transactions", len(basket_sets))

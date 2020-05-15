@@ -1,6 +1,7 @@
 import pandas as pd
 # from mlxtend.frequent_patterns import apriori
-from apyori import apriori
+# from apyori import apriori
+from efficient_apriori import apriori
 from mlxtend.frequent_patterns import association_rules
 
 data_movies = pd.read_csv('movies.csv')
@@ -58,11 +59,20 @@ def apyori_mba(basket_sets, basket_len, basket_wid):
       print("Confidence: " + str(item[2][0][2]))
       print("Lift: " + str(item[2][0][3]))
       print("=====================================")
+      
+def eff_apriori(basket_sets, basket_len, basket_wid):
+   transactions = []
+   for i in range(0, basket_len):
+      transactions.append([str(basket_sets.values[i,j]) for j in range(0, basket_wid)])
+   itemsets, rules = apriori(transactions, min_support=0.5)
+   print(rules)
 
 
 print("Number of transactions", len(basket_sets))
 print("Number of movies", len(basket_sets.columns))   
+
 # mlxtend_mba(basket_sets)
-apyori_mba(basket_sets, len(basket_sets), len(basket_sets.columns))
+# apyori_mba(basket_sets, len(basket_sets), len(basket_sets.columns))
+eff_apriori(basket_sets, len(basket_sets), len(basket_sets.columns))
 
 print("------- END ---------")
