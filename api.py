@@ -4,38 +4,46 @@ from flask import request
 import requests
 import pandas as pd
 from flask import jsonify
+import os.path
+import time
 
 # create flask variables
 app = Flask(__name__)
 CORS(app)
 
+MOVIES_DATASET = 'small_dataset/movies.csv'
+
+RATING_SUBMITTED_FILE = 'temp_ratings.csv'
+
 
 @app.route('/get_movies', methods=['GET'])
 def get_movies():
     print("GETTING LIST OF MOVIES")
-    movies = get_movies()
+    movies = get_movies_from_dataset()
     print("RECOMMENDATIONS FOUND")
     return jsonify(movies)
 
 
-@app.route('/get_recommendations', methods=['POST'])
+@app.route('/get_recommendations', methods=['GET'])
 def get_recommendations():
-    json_result = request.json
-    query_value = json_result["query"]
     print("GETTING RECOMMENDATION")
-    # TODO
+    user_id = request.args.get('user_id')
+    recommendations = get_recommendations_from_rating(user_id)
     print("RECOMMENDATIONS FOUND")
     return 0
 
 
-@app.route('/add_ratings', methods=['POST'])
-def add_ratings():
+@app.route('/add_rating', methods=['POST'])
+def add_rating():
+    print("ADDING RATING")
     json_result = request.json
-    query_value = json_result["ratings"]
-    print("ADDING RECOMMENDATIONS")
-    # TODO
-    print("RECOMMENDATION ADDED")
-    return 'OK'
+    user_id = json_result["user_id"]
+    movie_id = json_result["movie_id"]
+    rating = json_result["rating"]
+    # TODO add to temporary file
+    result = add_rating_to_temp(user_id, movie_id, rating)
+    print("RATING ADDED")
+    return result
     
     
 def label_year(row):
@@ -46,11 +54,10 @@ def title_without_year(row):
     return row['title'][0:-7]
     
     
-def get_movies():
-   data_movies = pd.read_csv('small_dataset/movies.csv')
+def get_movies_from_dataset():
+   data_movies = pd.read_csv(MOVIES_DATASET)
    data_movies['year'] = data_movies.apply(lambda row: label_year(row), axis=1)
    data_movies['title'] = data_movies.apply(lambda row: title_without_year(row), axis=1)
-   print(data_movies)
    movies = []
    for index, row in data_movies.iterrows():
       movie = {
@@ -60,11 +67,38 @@ def get_movies():
          'year': row['year']
       }
       movies.append(movie)
-   result = {
-      'list_of_movies': movies
-   }
    return movies
+   
+   
+def add_rating_to_temp(user_id, movie_id, rating):
+   try:
+      ts = time.time()	
+      #create file
+      file_obj  = open(RATING_SUBMITTED_FILE, "a+")
+      file_obj.write(str(user_id) + "," + str(movie_id) + "," + str(rating) + "," + str(ts))
+      file_obj.close()
+      return 'OK'
+   except Exception as exc:
+      print(exc)
+      return 'ERROR'
 
+      
+def get_recommendations_from_rating(user_id):
+   # read rating submitted by user
+   try:
+      file_obj  = open(RATING_SUBMITTED_FILE, "r")
+      contents = file_obj.read()
+      file_obj.close()
+      movies = get_movies_from_ratings(contents)
+      return 'OK'
+   except Exception as exc:
+      print(exc)
+      return 'ERROR'
+      
+ 
+def get_movies_from_ratings(user_id, contents):
+   print(contents)
+      
 
 # run the app
 if __name__ == '__main__':
