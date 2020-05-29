@@ -9,7 +9,7 @@
           v-for="ff in filtered_films" :key=ff.movie_id
           v-on:click="selectmovie(ff.movie_id)"
         >
-          <div class="ff-title">{{ff.title}} {{ff.movie_id}}</div>
+          <div class="ff-title">{{ff.title}}</div>
           <div class="ff-year">{{ff.year}}</div>
           <div class="ff-genres">{{ff.genres}}</div>
         </div>
@@ -62,12 +62,14 @@ export default {
 .ff {
   background: #e3e3e3;
   color: #122323;
-  height: 100px;
+  height: 200px;
   width: 200px;
   text-align: center;
   margin: 5px 15px;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  cursor: pointer;
 }
 
 .ff-title {

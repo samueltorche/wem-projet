@@ -11,16 +11,34 @@
       <div class="sm-year">{{selected_movie.year}}</div>
       <div class="sm-genres">{{selected_movie.genres}}</div>
       <div class="sm-ratings">
+        <!--
         <div class="sm-circle"></div>
         <div class="sm-circle"></div>
         <div class="sm-circle"></div>
         <div class="sm-circle"></div>
-        <div class="sm-circle"></div>
+        <div class="sm-circle"></div>-->
+        <input v-model="rating" type="text">
+        <input type="button" v-on:click="submit_rating()" value="Add rating" />
       </div>
+      <input type="button" v-on:click="add_wish()" value="Add to My Movies" />
     </div>
 
-    <input v-model="rating" type="text">
-    <input type="button" v-on:click="submit_rating()" value="Add rating" />
+
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+
+    
+    <div class="my-movies">
+      <div v-for="m in my_movies" :key="m.movie_id">
+        {{m.title}}
+      </div>
+    </div>
+    <input type="button" v-on:click="get_recommendations()" value="Get Recommendations" />
+    <div>
+    </div>
   </div>
 </template>
 
@@ -40,6 +58,10 @@ export default {
       this.selected_movie_id = movie_id
     },
 
+    add_wish: function(){
+      this.my_movies.push(this.selected_movie)
+    },
+
     submit_rating: function() {
       const uid = parseInt(this.userid);
       const r = parseInt(this.rating);
@@ -50,6 +72,20 @@ export default {
       .then(function(result){
         console.log(result)
       })
+    },
+
+    get_recommendations: function() {
+
+      var movie_ids = []
+      for(var idx in this.my_movies) {
+        var m = this.my_movies[idx]
+        movie_ids.push(m.movie_id)
+      }
+      axios.get('http://localhost:5000/get_recommendations', {"movie_ids": movie_ids})
+      .then((response)=>{
+          console.log(response)
+      })
+
     }
   },
 
@@ -66,6 +102,7 @@ export default {
     return {
       userid:0,
       rating:0,
+      my_movies:[],
       selected_movie_id: 1,
       films: [
         {
@@ -113,6 +150,11 @@ export default {
   background: #232323;
   padding: 60px;
   color: white;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 
@@ -128,6 +170,7 @@ export default {
 }
 
 .sm-ratings {
+  margin-top: 100px;
   display:flex;
   flex-direction: row;
   justify-content: center;
@@ -138,6 +181,11 @@ export default {
   height: 20px;
   width: 20px;
   border-radius: 50%;
+}
+
+.sm-title {
+  font-size: 25px;
+  font-weight: bold;
 }
 
 </style>
