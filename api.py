@@ -6,6 +6,7 @@ import pandas as pd
 from flask import jsonify
 import os.path
 import time
+import itertools
 
 # create flask variables
 app = Flask(__name__)
@@ -26,11 +27,20 @@ def get_movies():
     return jsonify(movies)
 
 
-@app.route('/get_recommendations', methods=['GET'])
-def get_recommendations():
-    print("GETTING RECOMMENDATION")
+@app.route('/get_recommendations_for_ratings', methods=['GET'])
+def get_recommendations_for_ratings():
+    print("GETTING RECOMMENDATIONS FOR RATINGS")
     user_id = request.args.get('user_id')
     recommendations = get_recommendations_from_rating(user_id)
+    print("RECOMMENDATIONS FOR RATINGS FOUND")
+    return recommendations
+    
+    
+@app.route('/get_recommendations', methods=['GET'])
+def get_recommendations():
+    print("GETTING RECOMMENDATIONS")
+    movies = request.args.getlist('movie_id')
+    recommendations = get_rules_for_movies(movies)
     print("RECOMMENDATIONS FOUND")
     return recommendations
 
@@ -49,7 +59,7 @@ def add_rating():
     
     
 def label_year(row):
-    return row['title'][-4:-1]
+    return row['title'][-5:-1]
 
 
 def title_without_year(row):
@@ -118,8 +128,19 @@ def get_movies_from_ratings(user_id, contents):
    
    
 def get_rules_for_movies(movies):
+   print(movies)
    data_rules = pd.read_csv(RULES_DATASET)
-   # loop 
+   print(data_rules)
+   # new algorithm: descente du boje
+   list_combinations = []
+   list_combinations.append(list(itertools.combinations(movies, len(movies))))
+   i = len(movies) - 1
+   # loop and generate combinations
+   while i > 0:
+      combi = list(itertools.combinations(movies, i))
+      list_combinations.append(combi)
+      i -= 1
+   print(list_combinations)
    return 'OK'
    
 
