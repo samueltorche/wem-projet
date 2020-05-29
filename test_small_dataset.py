@@ -4,7 +4,7 @@ from mlxtend.frequent_patterns import fpgrowth
 from mlxtend.frequent_patterns import association_rules
 from mlxtend.preprocessing import TransactionEncoder
 
-data_movies = pd.read_csv('movies.csv')
+data_movies = pd.read_csv('small_dataset/movies.csv')
 
 
 def label_year(row):
@@ -20,13 +20,12 @@ data_movies['title'] = data_movies.apply(lambda row: title_without_year(row), ax
 
 print('this dataset contains: ', len(data_movies), 'movies')
 
-data_ratings = pd.read_csv('ratings.csv', usecols=[0, 1, 2])
+data_ratings = pd.read_csv('small_dataset/ratings.csv', usecols=[0, 1, 2])
 print('this dataset contains: ', len(data_ratings), 'ratings')
 data_ratings = data_ratings[data_ratings.rating > 2]
 print('this dataset contains: ', len(data_ratings), 'positive ratings')
 
-limit_testing = 5000000
-df = data_ratings[:limit_testing].groupby(['userId', 'movieId']).size().reset_index(name='count')
+df = data_ratings.groupby(['userId', 'movieId']).size().reset_index(name='count')
 
 print("Ratings effectively taken:", len(df))
 
@@ -67,14 +66,19 @@ def mlxtend_mba(basket_sets):
    frequent_itemsets = apriori(sparse_df, min_support=0.1, use_colnames=True)
    '''
    print("Applying fpgrowth/apriori on baskets...")
-   frequent_itemsets = fpgrowth(basket_sets, min_support=0.3, use_colnames=True)
+   frequent_itemsets = fpgrowth(basket_sets, min_support=0.2, use_colnames=True)
    # frequent_itemsets = apriori(basket_sets, min_support=0.3, use_colnames=True, low_memory=True)
    print("Applying association rules...")
    rules = association_rules(frequent_itemsets, metric="lift")
    print("Sorting association rules...")
    rules.sort_values('confidence', ascending=False, inplace=True)
    # rules.head(10)
+   print("Number of rules found:", len(rules))
    print(rules)
+   # save rules
+   filename = 'rules.csv'
+   rules.to_csv(filename, index=False)
+   print("Rules saved to file:", filename)
 
 
 print("Number of transactions", len(basket_sets))

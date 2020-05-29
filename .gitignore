@@ -1,4 +1,6 @@
 .ipynb_checkpoints/
 
-ratings.csv
-movies.csv
+/ratings.csv
+/movies.csv
+frontend/package-lock.json
+frontend/node_modules
