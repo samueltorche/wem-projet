@@ -6,10 +6,10 @@
       <div class="films-sorted">
         <div
           class="ff"
-          v-for="ff in filtered_films" :key=ff.title
+          v-for="ff in filtered_films" :key=ff.movie_id
           v-on:click="selectmovie(ff.movie_id)"
         >
-          <div class="ff-title">{{ff.title}}</div>
+          <div class="ff-title">{{ff.title}} {{ff.movie_id}}</div>
           <div class="ff-year">{{ff.year}}</div>
           <div class="ff-genres">{{ff.genres}}</div>
         </div>
@@ -44,10 +44,10 @@ export default {
 
   computed: {
     filtered_films: function () {
-      //if (this.search_value.length < 3) { return []}
+      if (this.search_value.length < 3) { return []}
 
       return this.films.filter( (film) => {
-        return film.title.startsWith(this.search_value)
+        return film.title.toUpperCase().includes(this.search_value.toUpperCase())
       })
     }
   }

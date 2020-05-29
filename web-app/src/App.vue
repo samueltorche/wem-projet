@@ -26,6 +26,7 @@
 
 <script>
 import FilmSearch from './components/FilmSearch.vue'
+const axios = require('axios')
 
 export default {
   name: 'app',
@@ -44,7 +45,7 @@ export default {
       const r = parseInt(this.rating);
       this.selected_movie_id;
 
-      axios.post('http://localhost:3000/add_rating', {"user_id": uid, "movie_id":this.selected_movie_id, "rating":r}
+      axios.post('http://localhost:5000/add_rating', {"user_id": uid, "movie_id":this.selected_movie_id, "rating":r}
         )
       .then(function(result){
         console.log(result)
@@ -54,8 +55,11 @@ export default {
 
   mounted: function () {
     axios
-      .get('https://localhost:3000/get_movies')
-      .then(response => (this.films = response))
+      .get('http://localhost:5000/get_movies')
+      .then( (response) => {
+        console.log(response.data)
+        this.films = response.data
+      })
   },
 
   data: function () {
@@ -83,7 +87,13 @@ export default {
   computed: {
     selected_movie: function () {
       //if (this.search_value.length < 3) { return []}
-      return this.films[this.selected_movie_id-1]
+      for(var idx in this.films) {
+          var f = this.films[idx]
+          if(f.movie_id == this.selected_movie_id) {
+            return f
+          }
+      }
+      return {}
     }
   }
 }
