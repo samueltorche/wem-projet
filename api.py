@@ -15,6 +15,8 @@ MOVIES_DATASET = 'small_dataset/movies.csv'
 
 RATING_SUBMITTED_FILE = 'temp_ratings.csv'
 
+RULES_DATASET = 'rules.csv'
+
 
 @app.route('/get_movies', methods=['GET'])
 def get_movies():
@@ -30,7 +32,7 @@ def get_recommendations():
     user_id = request.args.get('user_id')
     recommendations = get_recommendations_from_rating(user_id)
     print("RECOMMENDATIONS FOUND")
-    return 0
+    return recommendations
 
 
 @app.route('/add_rating', methods=['POST'])
@@ -75,7 +77,7 @@ def add_rating_to_temp(user_id, movie_id, rating):
       ts = time.time()	
       #create file
       file_obj  = open(RATING_SUBMITTED_FILE, "a+")
-      file_obj.write(str(user_id) + "," + str(movie_id) + "," + str(rating) + "," + str(ts))
+      file_obj.write(str(user_id) + "," + str(movie_id) + "," + str(rating) + "," + str(ts)) + "\n"
       file_obj.close()
       return 'OK'
    except Exception as exc:
@@ -86,19 +88,40 @@ def add_rating_to_temp(user_id, movie_id, rating):
 def get_recommendations_from_rating(user_id):
    # read rating submitted by user
    try:
-      file_obj  = open(RATING_SUBMITTED_FILE, "r")
-      contents = file_obj.read()
-      file_obj.close()
-      movies = get_movies_from_ratings(contents)
-      return 'OK'
+      with open(RATING_SUBMITTED_FILE) as my_file:
+         contents = my_file.readlines()
+         my_file.close()
+      movies = get_movies_from_ratings(user_id, contents)
+      # check if not empty
+      if len(movies) > 0:
+         # get rules for movies
+         rules = get_rules_for_movies(movies)
+         return rules
+      else:
+         return 'NO RATING FOUND FOR CURRENT USER'
    except Exception as exc:
       print(exc)
       return 'ERROR'
       
  
 def get_movies_from_ratings(user_id, contents):
-   print(contents)
-      
+   movies_id = []
+   for line in contents:
+      # split like a csv
+      content = line.split(",")
+      print(content)
+      # check if same user_id and positive rating
+      if int(content[0]) == user_id and int(content[2]) > 3:
+         # add to list of movies
+         movies_id.append(content[1])
+   return movies_id
+   
+   
+def get_rules_for_movies(movies):
+   data_rules = pd.read_csv(RULES_DATASET)
+   # TODO
+   return 'OK'
+   
 
 # run the app
 if __name__ == '__main__':
