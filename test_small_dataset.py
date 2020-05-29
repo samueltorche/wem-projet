@@ -66,10 +66,10 @@ def mlxtend_mba(basket_sets):
    frequent_itemsets = apriori(sparse_df, min_support=0.1, use_colnames=True)
    '''
    print("Applying fpgrowth/apriori on baskets...")
-   frequent_itemsets = fpgrowth(basket_sets, min_support=0.2, use_colnames=True)
+   frequent_itemsets = fpgrowth(basket_sets, min_support=0.1, use_colnames=True)
    # frequent_itemsets = apriori(basket_sets, min_support=0.3, use_colnames=True, low_memory=True)
    print("Applying association rules...")
-   rules = association_rules(frequent_itemsets, metric="lift")
+   rules = association_rules(frequent_itemsets, metric="lift", min_threshold=4.5)
    print("Sorting association rules...")
    rules.sort_values('confidence', ascending=False, inplace=True)
    # rules.head(10)
