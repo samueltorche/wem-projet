@@ -77,7 +77,7 @@ def add_rating_to_temp(user_id, movie_id, rating):
       ts = time.time()	
       #create file
       file_obj  = open(RATING_SUBMITTED_FILE, "a+")
-      file_obj.write(str(user_id) + "," + str(movie_id) + "," + str(rating) + "," + str(ts))
+      file_obj.write(str(user_id) + "," + str(movie_id) + "," + str(rating) + "," + str(ts)) + "\n"
       file_obj.close()
       return 'OK'
    except Exception as exc:
@@ -96,7 +96,7 @@ def get_recommendations_from_rating(user_id):
       if len(movies) > 0:
          # get rules for movies
          rules = get_rules_for_movies(movies)
-         return 'OK'
+         return rules
       else:
          return 'NO RATING FOUND FOR CURRENT USER'
    except Exception as exc:
@@ -119,7 +119,8 @@ def get_movies_from_ratings(user_id, contents):
    
 def get_rules_for_movies(movies):
    data_rules = pd.read_csv(RULES_DATASET)
-   
+   # TODO
+   return 'OK'
    
 
 # run the app
