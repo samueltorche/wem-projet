@@ -6,6 +6,7 @@ import pandas as pd
 from flask import jsonify
 import os.path
 import time
+import itertools
 
 # create flask variables
 app = Flask(__name__)
@@ -26,13 +27,24 @@ def get_movies():
     return jsonify(movies)
 
 
-@app.route('/get_recommendations', methods=['GET'])
-def get_recommendations():
-    print("GETTING RECOMMENDATION")
+@app.route('/get_recommendations_for_ratings', methods=['GET'])
+def get_recommendations_for_ratings():
+    print("GETTING RECOMMENDATIONS FOR RATINGS")
     user_id = request.args.get('user_id')
     recommendations = get_recommendations_from_rating(user_id)
-    print("RECOMMENDATIONS FOUND")
+    print("RECOMMENDATIONS FOR RATINGS FOUND")
     return recommendations
+    
+    
+@app.route('/get_recommendations', methods=['GET'])
+def get_recommendations():
+    print("GETTING RECOMMENDATIONS")
+    movies = request.args.getlist('movie_id')
+    combinations = get_combinations_for_movies(movies)
+    recommendations = get_rules_from_combinations(combinations)
+    print(recommendations)
+    print("RECOMMENDATIONS FOUND")
+    return jsonify(recommendations)
 
 
 @app.route('/add_rating', methods=['POST'])
@@ -49,7 +61,7 @@ def add_rating():
     
     
 def label_year(row):
-    return row['title'][-4:-1]
+    return row['title'][-5:-1]
 
 
 def title_without_year(row):
@@ -95,7 +107,8 @@ def get_recommendations_from_rating(user_id):
       # check if not empty
       if len(movies) > 0:
          # get rules for movies
-         rules = get_rules_for_movies(movies)
+         combinations = get_combinations_for_movies(movies)
+         rules = get_rules_from_combinations(combinations)
          return rules
       else:
          return 'NO RATING FOUND FOR CURRENT USER'
@@ -117,10 +130,35 @@ def get_movies_from_ratings(user_id, contents):
    return movies_id
    
    
-def get_rules_for_movies(movies):
+def get_combinations_for_movies(movies):
+   print(movies)
+   # new algorithm: descente du boje
+   list_combinations = []
+   i = len(movies)
+   # loop and generate combinations
+   while i > 0:
+      list_combinations.append(list(itertools.combinations(movies, i)))
+      i -= 1
+   print(list_combinations)
+   return list_combinations
+   
+   
+def get_rules_from_combinations(combinations):
+   rules = []
    data_rules = pd.read_csv(RULES_DATASET)
-   # loop 
-   return 'OK'
+   for i, row in data_rules.iterrows():
+      data_rules.at[i,'antecedents'] = eval(data_rules["antecedents"][i])
+      data_rules.at[i,'consequents'] = eval(data_rules["consequents"][i])
+   print(data_rules)
+   for combination in combinations:
+      for combi in combination:
+         combi_int = tuple(int(num) for num in combi)
+         combi_frozenset = frozenset(combi_int)
+         rows_found = data_rules.loc[data_rules["antecedents"] == combi_frozenset]
+         if not rows_found.empty:
+            for i, row in rows_found.iterrows():
+               rules.append(list(rows_found["consequents"][i]))
+   return rules
    
 
 # run the app
