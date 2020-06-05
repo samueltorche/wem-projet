@@ -38,6 +38,7 @@
     </div>
     <input type="button" v-on:click="get_recommendations()" value="Get Recommendations" />
     <div>
+      {{recommended_movies}}
     </div>
   </div>
 </template>
@@ -81,9 +82,33 @@ export default {
         var m = this.my_movies[idx]
         movie_ids.push(m.movie_id)
       }
-      axios.get('http://localhost:5000/get_recommendations', {"movie_ids": movie_ids})
+
+      
+      var request_param ="movie_id="
+      var isfirst = true
+      for(var mid in movie_ids ){
+        if (isfirst) {
+          request_param +=  movie_ids[mid]
+          isfirst = false
+          continue
+        }
+        request_param += "&movie_id=" + movie_ids[mid]
+      }
+
+      console.log(request_param)
+
+      axios.get('http://localhost:5000/get_recommendations?'+request_param, {})
       .then((response)=>{
-          console.log(response)
+          console.log("RESPONSE")
+          var recommendations = response.data
+          var movies_id_rec = []
+          for(var i=0; i<recommendations.length; i++) {
+            var sub_recs = recommendations[i]
+            movies_id_rec.push(sub_recs)
+          }
+
+          this.recommended_movies_ids = movies_id_rec
+
       })
 
     }
@@ -93,8 +118,19 @@ export default {
     axios
       .get('http://localhost:5000/get_movies')
       .then( (response) => {
+
+        var indexes_movies = {}
+
         console.log(response.data)
         this.films = response.data
+
+        for (var i = 0; i < response.data.length; i++) {
+          var m = response.data[i]
+          indexes_movies[m.movie_id] = m
+        }
+
+        this.indexes_movies = indexes_movies
+
       })
   },
 
@@ -104,6 +140,7 @@ export default {
       rating:0,
       my_movies:[],
       selected_movie_id: 1,
+      recommended_movies_ids: [],
       films: [
         {
           "genres": "Adventure|Animation|Children|Comedy|Fantasy", 
@@ -124,13 +161,17 @@ export default {
   computed: {
     selected_movie: function () {
       //if (this.search_value.length < 3) { return []}
-      for(var idx in this.films) {
-          var f = this.films[idx]
-          if(f.movie_id == this.selected_movie_id) {
-            return f
-          }
+      return this.indexes_movies[this.selected_movie_id]
+    },
+
+    recommended_movies: function() {
+      var res = []
+      if (this.recommended_movies_ids.length==0) { return []}
+      for(var idx in this.recommended_movies_ids) {
+          var fid = this.recommended_movies_ids[idx]
+          res.push(this.indexes_movies[fid].title)
       }
-      return {}
+      return res
     }
   }
 }
