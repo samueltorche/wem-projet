@@ -4,3 +4,8 @@
 /movies.csv
 node_modules/
 package-lock.json
+web-app/package-lock.json
+
+.DS_Store
+debug.log
+

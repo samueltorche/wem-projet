@@ -1,0 +1,5 @@
+Flask==1.0.3
+Flask-Cors==3.0.8
+mlxtend==0.17.2
+pandas==0.25.3
+requests==2.21.0
