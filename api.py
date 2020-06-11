@@ -144,7 +144,7 @@ def get_combinations_for_movies(movies):
    
    
 def get_rules_from_combinations(combinations):
-   rules = []
+   rules = set()
    data_rules = pd.read_csv(RULES_DATASET)
    for i, row in data_rules.iterrows():
       data_rules.at[i,'antecedents'] = eval(data_rules["antecedents"][i])
@@ -157,8 +157,9 @@ def get_rules_from_combinations(combinations):
          rows_found = data_rules.loc[data_rules["antecedents"] == combi_frozenset]
          if not rows_found.empty:
             for i, row in rows_found.iterrows():
-               rules.append(list(rows_found["consequents"][i]))
-   return rules
+               for item in rows_found["consequents"][i]:
+                  rules.add(item)
+   return list(rules)
    
 
 # run the app
